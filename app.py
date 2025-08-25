@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Test configuration
+# Configuration
 PUNTING_FORM_API_BASE = "https://api.puntingform.com.au/v2"
-TEST_DATE = (datetime.now() + timedelta(days=1)).strftime("%d/%m/%Y")
+TEST_DATE = "2025-08-26"  # ISO format YYYY-MM-DD as required by API
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -85,16 +85,16 @@ HTML_TEMPLATE = """
 def test_api_connectivity():
     """Test Punting Form API connectivity from current location"""
     try:
-        # Test endpoint - meetings list
+        # Test endpoint - meetings list (correct endpoint per API docs)
         url = f"{PUNTING_FORM_API_BASE}/form/meetingslist"
         
         # Get API key from environment
         api_key = os.getenv("PUNTING_FORM_API_KEY", "test-key")
         
-        # Correct authentication method - apiKey as URL parameter
+        # Correct authentication method per API documentation
         params = {
-            "meetingDate": TEST_DATE,
-            "apiKey": api_key
+            "meetingDate": TEST_DATE,  # YYYY-MM-DD format as required
+            "apiKey": api_key          # apiKey parameter as per API docs
         }
         
         headers = {
