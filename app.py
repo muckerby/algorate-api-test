@@ -87,19 +87,23 @@ def test_api_connectivity():
     try:
         # Test endpoint - meetings list
         url = f"{PUNTING_FORM_API_BASE}/form/meetingslist"
-        params = {
-            "meetingDate": TEST_DATE
-        }
         
         # Get API key from environment
         api_key = os.getenv("PUNTING_FORM_API_KEY", "test-key")
+        
+        # Correct authentication method - apiKey as URL parameter
+        params = {
+            "meetingDate": TEST_DATE,
+            "apiKey": api_key
+        }
+        
         headers = {
-            "Authorization": f"Bearer {api_key}",
             "User-Agent": "Algorate-Test/1.0"
         }
         
         logger.info(f"Testing API connectivity to {url}")
         logger.info(f"Test date: {TEST_DATE}")
+        logger.info(f"Using API key: {api_key[:8]}...")
         
         # Make request with timeout
         response = requests.get(url, params=params, headers=headers, timeout=10)
@@ -116,11 +120,17 @@ def test_api_connectivity():
         try:
             json_data = response.json()
             result["json_response"] = json_data
-            result["meetings_count"] = len(json_data) if isinstance(json_data, list) else "N/A"
+            
+            # Check if we got actual meeting data
+            if response.status_code == 200 and json_data.get("payLoad"):
+                result["meetings_count"] = len(json_data["payLoad"]) if isinstance(json_data["payLoad"], list) else 1
+                result["sample_meeting"] = json_data["payLoad"][0] if isinstance(json_data["payLoad"], list) and len(json_data["payLoad"]) > 0 else None
+            else:
+                result["meetings_count"] = "N/A"
         except:
             result["response_text"] = response.text[:500] + "..." if len(response.text) > 500 else response.text
         
-        logger.info(f"API test successful: {response.status_code}")
+        logger.info(f"API test result: {response.status_code}")
         return result
         
     except requests.exceptions.Timeout:
